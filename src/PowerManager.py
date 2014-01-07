@@ -21,7 +21,7 @@ from twisted.protocols import basic
 from Crypto.Cipher import AES
 from datetime import datetime, time, date, timedelta
 
-from cloudtop.helper.ipaddressfinder import IPAddressFinder
+from ipaddressfinder import IPAddressFinder
 
 #change on deployment
 #from cloudtop.helper.configreader import fillAllDefaults
