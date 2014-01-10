@@ -87,9 +87,9 @@ class ConfigreaderTestSuite(unittest.TestCase):
     def testFillThinclientDefaults(self):
         configreader._fillThinclientDefaults(self.testFile)
 
-        self.assertEqual(ThinClient.DEFAULT_ADDR, self.configset['thinclient']['default_addr'])
-        self.assertEqual(ThinClient.SERVERA_ADDR, self.configset['thinclient']['serverA_addr'])
-        self.assertEqual(ThinClient.SERVERB_ADDR, self.configset['thinclient']['serverB_addr'])
+        self.assertEqual(ThinClient.DEFAULT_ADDR, (self.configset['thinclient']['default_addr'], 8880)
+        self.assertEqual(ThinClient.SERVERA_ADDR, (self.configset['thinclient']['serverA_addr'], 8880)
+        self.assertEqual(ThinClient.SERVERB_ADDR, (self.configset['thinclient']['serverB_addr'], 8880)
 
     @patch('cloudtop.helper.configreader._fillSwitchDefaults')
     @patch('cloudtop.helper.configreader._fillNodeDefaults')
