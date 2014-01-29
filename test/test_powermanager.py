@@ -204,6 +204,49 @@ class PowerManagerTestSuite(unittest.TestCase):
            None, params)
         d.addCallback(self.assertEqual, None)
 
+    def testSendWakeUpTime(self):
+        self.powerManager.sendIPMICommand = Mock()
+        self.powerManager.getNextDayDate = Mock(return_value=(2013, 12, 25))
+
+        self.powerManager.sendIPMICommand = Mock(return_value=defer.succeed(None))
+        params = []
+        params.append('-H')
+        params.append(Switch.IPADDRESS)
+        params.append('-U')
+        params.append(Switch.USERNAME)
+        params.append('-P')
+        params.append(Switch.PASSWORD)
+        params.append('raw')
+        params.append('0x30')
+        params.append('0x3c')
+        params.append('05')
+        params.append('00')
+        params.append('20')
+        params.append('13')
+        params.append('12')
+        params.append('25')
+
+        self.powerManager.sendWakeUpTime()
+
+        self.powerManager.sendIPMICommand.assert_called_with(params)
+
+    testSendWakeUpTime.skip = 'dev date getter first'
+
+    @patch('PowerManager.datetime')
+    @patch('PowerManager.date')
+    def testGetNextDayDate(self, Date, DateTime):
+        #function should return 3 integer values
+        Date.today = Mock(return_value=date(2013,7,11))
+        DateTime.combine = datetime.combine
+        DateTime.now = Mock(return_value=\
+            datetime(2013,7, 11, 18, 30, 2, 0))
+        tomorrow = (2013, 7, 12)
+
+        ret = self.powerManager.getNextDayDate()
+
+        self.assertEqual(ret, tomorrow)
+
+
     @patch('PowerManager.utils')
     def testSendIPMICommand(self, utils):
         cmd = '/usr/bin/ipmitool'
@@ -270,7 +313,7 @@ class PowerManagerTestSuite(unittest.TestCase):
     @patch('PowerManager.datetime')
     @patch('PowerManager.date')
     def test_getTimeFromShutdown(self, Date, dateTime):
-        seconds = 52198
+        seconds = 48598
         dateTime.combine = datetime.combine
         dateTime.now = Mock(return_value=\
             datetime(2013,7, 11, 6, 30, 2, 0))
@@ -283,7 +326,7 @@ class PowerManagerTestSuite(unittest.TestCase):
     @patch('PowerManager.datetime')
     @patch('PowerManager.date')
     def test_getTimeFromPowerUP(self, Date, DateTime):
-        seconds = 41398
+        seconds = 37798
         DateTime.combine = datetime.combine
         Date.today = Mock(return_value=date(2013,7,11))
         DateTime.now = Mock(return_value=\

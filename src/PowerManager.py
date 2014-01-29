@@ -65,9 +65,9 @@ class Conf():
     MACFILE = ''
     LOGLEVEL = logging.DEBUG
     DAILYSHUTDOWN = True
-    SHUTDOWNHOUR = 21
+    SHUTDOWNHOUR = 20
     SHUTDOWNMINUTE = 0
-    WAKEUPHOUR = 6
+    WAKEUPHOUR = 5
     WAKEUPMINUTE = 0
     DEFAULTSCHEDULEDSHUTDOWNWAITTIME = 0x258
 
@@ -208,6 +208,49 @@ class PowerManager(DatagramProtocol):
 
         d = self.sendIPMICommand(None, params)
         return d
+
+    def sendWakeUpTime(self):
+        params = []
+        params.append('-H')
+        params.append(Switch.IPADDRESS)
+        params.append('-U')
+        params.append(Switch.USERNAME)
+        params.append('-P')
+        params.append(Switch.PASSWORD)
+        params.append('raw')
+        params.append('0x30')
+        params.append('0x3c')
+
+        #format time
+        if Conf.WAKEUPHOUR <= 9:
+            params.append('0'+str(Conf.WAKEUPHOUR))
+        else:
+            params.append(str(Conf.WAKEUPHOUR))
+        if Conf.WAKEUPMINUTE <= 9:
+            params.append('0'+str(Conf.WAKEUPMINUTE))
+        else:
+            params.append(str(Conf.WAKEUPMINUTE))
+
+        datetom = self.getNextDayDate()
+        #format date
+        year1 = str(datetom.year)[0:2]
+        year2 = str(datetom.year)[2:4]
+        params.append(year1)
+        params.append(year2)
+
+        if datetom.month <= 9:
+            params.append('0'+str(datetom.month))
+        else:
+            params.append(str(datetom.month))
+        if datetom.day <= 9:
+            params.append('0'+str(datetom.day))
+        else:
+            params.append(str(datetom.day))
+
+        self.sendIPMICommand(params)
+
+
+
 
     def sendIPMIAck(self):
         params = []
@@ -523,6 +566,11 @@ class PowerManager(DatagramProtocol):
 
         d = self.sendIPMICommand(None,params)
         return d
+
+    def getNextDayDate(self):
+        oneDay = timedelta(days=1)
+        tomorrow = date.today() + oneDay
+        return (tomorrow.year, tomorrow.month, tomorrow.day)
 
     def _timeFromPowerUp(self):
         currentTime = datetime.now()
