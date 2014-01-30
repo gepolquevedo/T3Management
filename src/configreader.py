@@ -1,5 +1,5 @@
 import ConfigParser
-from cloudtop.daemon.PowerManager import NodeA, NodeB, Conf, Switch, ThinClient
+from powermodels import NodeA, NodeB, Conf, Switch, ThinClient
 
 def _fillSwitchDefaults(configfile):
 	config = ConfigParser.ConfigParser()

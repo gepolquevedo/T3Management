@@ -2,17 +2,19 @@ from mock import Mock, call, patch
 from twisted.internet import defer, reactor
 from twisted.trial import unittest
 
-from cloudtop.daemon.PowerManager import NodeA, NodeB, Conf, Switch, ThinClient
-import cloudtop.helper.configreader as configreader
+# from cloudtop.daemon.PowerManager import NodeA, NodeB, Conf, Switch, ThinClient
+from powermodels import NodeA, NodeB, Conf, Switch, ThinClient
+import configreader
 
-from cloudtop.config.test import TEST
+#from cloudtop.config.test import TEST
 
 import ConfigParser
 
 class ConfigreaderTestSuite(unittest.TestCase):
     
     def setUp(self):
-        self.testFile = TEST.POWERTESTFILE
+        #hardcoded for now
+        self.testFile = "/Users/gepol/T3Management/power_mgmt.cfg"
         switch = {}
         nodeA = {}
         nodeB = {}
@@ -21,23 +23,23 @@ class ConfigreaderTestSuite(unittest.TestCase):
         self.configset = {}
 
         switch['id'] = 0x300000
-        switch['ipaddress'] = '11.18.221.210'
+        switch['ipaddress'] = '10.225.3.71'
         switch['username'] = 'Admin'
         switch['password'] = 'Admin'
 
-        nodeA['ip'] = '11.18.221.11'
-        nodeA['ipmihost'] = '11.18.221.111'
+        nodeA['ip'] = '10.225.3.61'
+        nodeA['ipmihost'] = '10.225.3.63'
         nodeA['ipmiuser'] = 'ADMIN'
-        nodeA['ipmipassword'] = 'Admin@123'
+        nodeA['ipmipassword'] = 'ADMIN'
 
-        nodeB['ip'] = '11.18.221.12'
-        nodeB['ipmihost'] = '11.18.221.112'
+        nodeB['ip'] = '10.225.3.62'
+        nodeB['ipmihost'] = '10.225.3.64'
         nodeB['ipmiuser'] = 'ADMIN'
-        nodeB['ipmipassword'] = 'Admin@123'
+        nodeB['ipmipassword'] = 'ADMIN'
 
-        thinclient['default_addr'] = '173.16.1.5'
-        thinclient['serverA_addr'] = '173.16.1.5'
-        thinclient['serverB_addr'] = '173.16.1.6'
+        thinclient['default_addr'] = '10.225.3.73'
+        thinclient['serverA_addr'] = '10.225.3.73'
+        thinclient['serverB_addr'] = '10.225.3.74'
 
         defaults['shutdownhour'] = 20
         defaults['shutdownminute'] = 0
@@ -87,14 +89,14 @@ class ConfigreaderTestSuite(unittest.TestCase):
     def testFillThinclientDefaults(self):
         configreader._fillThinclientDefaults(self.testFile)
 
-        self.assertEqual(ThinClient.DEFAULT_ADDR, (self.configset['thinclient']['default_addr'], 8880)
-        self.assertEqual(ThinClient.SERVERA_ADDR, (self.configset['thinclient']['serverA_addr'], 8880)
-        self.assertEqual(ThinClient.SERVERB_ADDR, (self.configset['thinclient']['serverB_addr'], 8880)
+        self.assertEqual(ThinClient.DEFAULT_ADDR, (self.configset['thinclient']['default_addr'], 8880))
+        self.assertEqual(ThinClient.SERVERA_ADDR, (self.configset['thinclient']['serverA_addr'], 8880))
+        self.assertEqual(ThinClient.SERVERB_ADDR, (self.configset['thinclient']['serverB_addr'], 8880))
 
-    @patch('cloudtop.helper.configreader._fillSwitchDefaults')
-    @patch('cloudtop.helper.configreader._fillNodeDefaults')
-    @patch('cloudtop.helper.configreader._fillThinclientDefaults')
-    @patch('cloudtop.helper.configreader._fillConfigDefaults')
+    @patch('configreader._fillSwitchDefaults')
+    @patch('configreader._fillNodeDefaults')
+    @patch('configreader._fillThinclientDefaults')
+    @patch('configreader._fillConfigDefaults')
     def testFillAllDefaults(self, config, thinclient, node, switch):
         configreader.fillAllDefaults(self.testFile)
 
