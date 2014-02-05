@@ -112,6 +112,8 @@ class PowerManagerTestSuite(unittest.TestCase):
     def testShutdownNeighbor(self, utils):
         cmd = '/usr/bin/ssh'
         params = []
+        params.append('-o')
+        params.append('StrictHostKeyChecking no')
         params.append('root@sa.123456.cloudtop.ph')
         params.append('"/sbin/poweroff"')
         params = tuple(params)
@@ -206,7 +208,7 @@ class PowerManagerTestSuite(unittest.TestCase):
 
     def testSendWakeUpTime(self):
         self.powerManager.sendIPMICommand = Mock()
-        self.powerManager.getNextDayDate = Mock(return_value=(2013, 12, 25))
+        self.powerManager.getNextDayDate = Mock(return_value=date(2013,12,25))
 
         self.powerManager.sendIPMICommand = Mock(return_value=defer.succeed(None))
         params = []
@@ -218,19 +220,68 @@ class PowerManagerTestSuite(unittest.TestCase):
         params.append(Switch.PASSWORD)
         params.append('raw')
         params.append('0x30')
-        params.append('0x3c')
-        params.append('05')
-        params.append('00')
-        params.append('20')
-        params.append('13')
+        params.append('0x38')
         params.append('12')
         params.append('25')
+        params.append('20')
+        params.append('13')
+        params.append('05')
+        params.append('00')
 
         self.powerManager.sendWakeUpTime()
 
         self.powerManager.sendIPMICommand.assert_called_with(params)
 
-    testSendWakeUpTime.skip = 'dev date getter first'
+    def testSendWakeUpTime_returnDefer(self):
+        self.powerManager.sendIPMICommand = Mock(return_value=defer.succeed(None))
+        self.powerManager.getNextDayDate = Mock(return_value=date(2013,12,25))
+
+        d = self.powerManager.sendWakeUpTime()
+
+        d.addCallback(self.assertEqual, None)
+
+    @patch('PowerManager.datetime')
+    def testGetCurrentTime(self, mocktime):
+        sampledate = datetime(2014,2,4,16,26, 59, 0)
+        mocktime.today = Mock(return_value = sampledate)
+
+
+        time = self.powerManager.getCurrentTime()
+
+        self.assertEqual(time, sampledate)
+
+    def testSendSyncTime(self):
+        self.powerManager.sendIPMICommand = Mock()
+        sampledate = datetime(2014,2,4,16,26, 59, 0)
+        self.powerManager.getCurrentTime = Mock(return_value = sampledate)
+        params = []
+        params.append('-H')
+        params.append(Switch.IPADDRESS)
+        params.append('-U')
+        params.append(Switch.USERNAME)
+        params.append('-P')
+        params.append(Switch.PASSWORD)
+        params.append('raw')
+        params.append('0x30')
+        params.append('0x3c')
+        params.append('02')
+        params.append('04')
+        params.append('20')
+        params.append('14')
+        params.append('16')
+        params.append('26')
+
+        self.powerManager.sendSyncTime()
+
+        self.powerManager.sendIPMICommand.assert_called_with(params)
+
+    def testSenSyncTime_returnDefer(self):
+        self.powerManager.sendIPMICommand = Mock(return_value=defer.succeed(None))
+        self.powerManager.getCurrentTime = Mock(return_value=datetime(2013,12,25, 18, 30 , 2, 0))        
+
+        d = self.powerManager.sendSyncTime()
+
+        d.addCallback(self.assertEqual, None)
 
     @patch('PowerManager.datetime')
     @patch('PowerManager.date')
@@ -245,7 +296,6 @@ class PowerManagerTestSuite(unittest.TestCase):
         ret = self.powerManager.getNextDayDate()
 
         self.assertEqual(ret, tomorrow)
-
 
     @patch('PowerManager.utils')
     def testSendIPMICommand(self, utils):
