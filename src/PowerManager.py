@@ -140,6 +140,8 @@ class PowerManager(DatagramProtocol):
         return d
 
     def sendWakeUpTime(self):
+        logging.debug("sending wake up time to switch")
+
         params = []
         params.append('-H')
         params.append(Switch.IPADDRESS)
@@ -181,6 +183,8 @@ class PowerManager(DatagramProtocol):
         return d
 
     def sendSyncTime(self):
+        logging.debug("sending current time to switch.")
+
         params = []
         params.append('-H')
         params.append(Switch.IPADDRESS)
@@ -259,12 +263,14 @@ class PowerManager(DatagramProtocol):
 
     #NodeChecker
     def checkWhichNode(self, value):
+        logging.debug("checking which node")
         cmd = '/usr/sbin/clustat'
         d = utils.getProcessOutput(cmd)
         d.addCallback(self.parseClustat)
         return d
     
     def _powerOff(self, buffer):
+        logging.debug("poweroff command executed")
         cmd = '/sbin/poweroff'
         d = utils.getProcessOutput(cmd)
         return d
@@ -293,6 +299,8 @@ class PowerManager(DatagramProtocol):
             cmd = '/sbin/poweroff'
             #Todo: simplify this for Mgmt Vm based operation
             d = self.powerDownThinClients()
+            d.addCallback(self.sendWakeUpTime)
+            d.addCallback(self.sendSyncTime)
             d.addCallback(self.checkWhichNode) 
             d.addCallback(self.shutdownNeighbor)
             d.addCallback(self._powerOff)
